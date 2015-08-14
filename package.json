@@ -1,0 +1,39 @@
+{
+  "name": "apache-log-parser",
+  "version": "0.1.0",
+  "description": "Parse apache logs",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toehio/apache-log-parser.git"
+  },
+  "keywords": [
+    "apache",
+    "apache2",
+    "log",
+    "parse",
+    "stream",
+    "geolocation",
+    "ip"
+  ],
+  "author": "Theo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toehio/apache-log-parser/issues"
+  },
+  "homepage": "https://github.com/toehio/apache-log-parser",
+  "dependencies": {
+    "async": "^1.4.2",
+    "exec-queue": "0.0.2",
+    "fast-csv": "^0.6.0",
+    "split": "^1.0.0"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^2.2.5",
+    "stream-aggregate": "^0.1.1"
+  }
+}
