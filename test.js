@@ -35,9 +35,7 @@ describe('Log parsed as objects', function () {
   it('should emit data event', function (done) {
     var lp = LogParser({format: false});
     fs.createReadStream(example_log).pipe(lp);
-    var n = 0;
-    lp.on('data', function (req) {
-      if (n++ > 0) return;
+    lp.once('data', function (req) {
       expect(req).to.be.an('object');
       expect(req).to.have.property('ip');
       expect(req.ip).to.be('180.76.15.21');
@@ -53,6 +51,7 @@ describe('Log parsed as objects', function () {
 });
 
 describe('Log parsed as stringified JSON', function () {
+  this.slow(1000);
 
   it('should return JSON string', function (done) {
     var lp = LogParser({format: 'json'});
@@ -63,6 +62,15 @@ describe('Log parsed as stringified JSON', function () {
       expect(results.length).to.be.greaterThan(100);
       expect(results[0]).to.be('[');
       expect(results[results.length - 1]).to.be(']');
+
+      var obj = JSON.parse(results);
+      expect(obj).to.be.an('array');
+      expect(obj).to.have.length(num_log_requests);
+      obj.forEach(function (req) {
+        expect(req).to.be.an('object');
+        expect(req).to.have.property('ip');
+      });
+
       done();
     });
   });
