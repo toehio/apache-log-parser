@@ -5,7 +5,16 @@ var aggregate = require('stream-aggregate');
 var stream = require('stream');
 
 var example_log = './example.log';
-var num_log_requests = fs.readFileSync(example_log).toString().split("\n").length - 1;
+var log_requests = fs.readFileSync(example_log).toString().split("\n");
+var num_log_requests = log_requests.length - 1;
+
+var makeSmallStream = function (num) {
+    var pt = new stream.PassThrough();
+    var some_lines = log_requests.slice(0, num || 26).join("\n");
+    pt.write(some_lines);
+    pt.end();
+    return pt;
+};
 
 describe('Log parsed as objects', function () {
 
@@ -127,11 +136,13 @@ describe('Passing a parse hook', function () {
 });
 
 describe('Looking up geo location', function () {
-  this.slow(3000);
+  this.slow(2000);
 
   it('should find the lat/long', function (done) {
     var lp = LogParser({format: false, geoLookup: true});
-    fs.createReadStream(example_log).pipe(lp);
+
+    makeSmallStream().pipe(lp);
+
     aggregate(lp, function (err, results) {
       expect(err).to.not.be.ok();
       expect(results).to.be.an('array');
@@ -141,6 +152,21 @@ describe('Looking up geo location', function () {
         expect(req.lat).to.be.a('number');
         expect(req.lng).to.be.a('number');
       });
+      done();
+    });
+  });
+
+  it('should use overridden cache', function (done) {
+    var lp = LogParser({format: false,
+                       geoLookup: true,
+                       ipGeoCache: {'180.76.15.21': [12.34, 56.78]}
+    });
+
+    makeSmallStream().pipe(lp);
+
+    lp.once('data', function (req) {
+      expect(req.lat).to.be(12.34);
+      expect(req.lng).to.be(56.78);
       done();
     });
   });

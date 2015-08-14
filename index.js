@@ -10,19 +10,19 @@ var Transform = stream.Transform ||
 
 var logRe = /^(\d+\.\d+\.\d+\.\d+) - - \[(.*?)\] "(\w+) (.*) HTTP\/\d.\d" (\d*) (\d*) "(.*?)" "(.*?)"$/i;
 
-var ip2loc_cache = {};
 function getIpLoc(line, req, cb) {
-  if (ip2loc_cache[req.ip]) {
-    req.lat = ip2loc_cache[req.ip][0];
-    req.lng = ip2loc_cache[req.ip][1];
+  var self = this;
+  if (self.ipGeoCache[req.ip]) {
+    req.lat = self.ipGeoCache[req.ip][0];
+    req.lng = self.ipGeoCache[req.ip][1];
     return cb();
   }
   exec('geoiplookup -f /usr/share/GeoIP/GeoLiteCity.dat ' + req.ip, function (err, out) {
     var p = out.split(', ');
     p.reverse();
-    ip2loc_cache[req.ip] = [parseFloat(p[3]), parseFloat(p[2])];
-    req.lat = ip2loc_cache[req.ip][0];
-    req.lng = ip2loc_cache[req.ip][1];
+    self.ipGeoCache[req.ip] = [parseFloat(p[3]), parseFloat(p[2])];
+    req.lat = self.ipGeoCache[req.ip][0];
+    req.lng = self.ipGeoCache[req.ip][1];
     cb();
   });
 }
@@ -36,6 +36,7 @@ var LogParser = function (opts) {
     opts.parseHooks.push(getIpLoc);
 
   this.parserOpts = opts;
+  this.ipGeoCache = opts.ipGeoCache || {};
 
   opts.objectMode = true;
   Transform.call(this, opts);
@@ -63,7 +64,7 @@ LogParser.prototype._transform = function (line, encoding, done) {
   if (self.parserOpts.parseHooks) {
     async.parallel(self.parserOpts.parseHooks.map(function (h) {
       return function (cb) {
-        h(line, req, cb);
+        h.call(self, line, req, cb);
       };
     }), function (err) {
       self.push(req);
