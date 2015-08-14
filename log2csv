@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+var LogParser = require('./');
+var fs = require('fs');
+
+process.stdin.pipe(LogParser({format: 'csv'})).pipe(process.stdout);
